@@ -1,0 +1,1856 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CLOOKIES - Sistem Persediaan Bahan Baku</title>
+
+    <!-- SUPABASE -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+
+        /* ==================================================
+           RESET
+        ================================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+
+        /* ==================================================
+           BODY
+        ================================================== */
+
+        body {
+            background: #f7f3ef;
+            color: #3e2723;
+        }
+
+
+        /* ==================================================
+           HEADER
+        ================================================== */
+
+        header {
+            background: #6d4c41;
+            color: white;
+            padding: 25px 0;
+        }
+
+        .header-container {
+            width: 90%;
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .subtitle {
+            margin-top: 5px;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+
+        /* ==================================================
+           CONTAINER
+        ================================================== */
+
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+        }
+
+
+        /* ==================================================
+           DASHBOARD
+        ================================================== */
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            padding: 22px;
+            border-radius: 12px;
+
+            box-shadow:
+                0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #795548;
+            margin-bottom: 10px;
+        }
+
+        .card-number {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+
+        /* ==================================================
+           SECTION
+        ================================================== */
+
+        .section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 12px;
+
+            box-shadow:
+                0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+
+        /* ==================================================
+           FORM
+        ================================================== */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 7px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+
+            width: 100%;
+
+            padding: 11px;
+
+            border: 1px solid #d7ccc8;
+
+            border-radius: 7px;
+
+            outline: none;
+
+            font-size: 14px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #795548;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+
+        /* ==================================================
+           BUTTON
+        ================================================== */
+
+        .button-area {
+            margin-top: 15px;
+        }
+
+        button {
+
+            background: #795548;
+
+            color: white;
+
+            border: none;
+
+            padding: 11px 20px;
+
+            border-radius: 7px;
+
+            cursor: pointer;
+
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #5d4037;
+        }
+
+        .button-danger {
+            background: #c62828;
+        }
+
+        .button-danger:hover {
+            background: #8e0000;
+        }
+
+
+        /* ==================================================
+           TABLE
+        ================================================== */
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 13px 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #efebe9;
+            color: #4e342e;
+        }
+
+        tr:hover {
+            background: #fafafa;
+        }
+
+
+        /* ==================================================
+           STATUS STOK
+        ================================================== */
+
+        .status-aman {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .status-menipis {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+
+        /* ==================================================
+           BADGE TRANSAKSI
+        ================================================== */
+
+        .badge-masuk {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .badge-keluar {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+
+        /* ==================================================
+           MESSAGE
+        ================================================== */
+
+        .message {
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 7px;
+            display: none;
+        }
+
+        .message.success {
+            display: block;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .message.error {
+            display: block;
+            background: #ffebee;
+            color: #c62828;
+        }
+
+
+        /* ==================================================
+           RESPONSIVE
+        ================================================== */
+
+        @media (max-width: 900px) {
+
+            .dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+        }
+
+
+        @media (max-width: 650px) {
+
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .container {
+                width: 95%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<header>
+
+    <div class="header-container">
+
+        <div class="logo">
+            🍪 CLOOKIES
+        </div>
+
+        <div class="subtitle">
+            Sistem Persediaan Bahan Baku
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<div class="container">
+
+
+    <!-- =================================================
+         MESSAGE
+    ================================================== -->
+
+    <div id="message" class="message"></div>
+
+
+
+    <!-- =================================================
+         DASHBOARD
+    ================================================== -->
+
+    <div class="dashboard">
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Jenis Bahan Baku
+            </div>
+
+            <div
+                class="card-number"
+                id="totalBahan"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Total Persediaan
+            </div>
+
+            <div
+                class="card-number"
+                id="totalStok"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Stok Menipis
+            </div>
+
+            <div
+                class="card-number"
+                id="stokMenipis"
+            >
+                0
+            </div>
+
+        </div>
+
+
+        <div class="card">
+
+            <div class="card-title">
+                Jumlah Pemasok
+            </div>
+
+            <div
+                class="card-number"
+                id="totalPemasok"
+            >
+                0
+            </div>
+
+        </div>
+
+
+    </div>
+
+
+
+    <!-- =================================================
+         TAMBAH BAHAN BAKU
+    ================================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Tambah Bahan Baku
+        </h2>
+
+
+        <form id="formBahan">
+
+
+            <div class="form-group">
+
+                <label>
+                    Kode Bahan
+                </label>
+
+                <input
+                    type="text"
+                    id="kodeBahan"
+                    placeholder="Contoh: BB011"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Nama Bahan Baku
+                </label>
+
+                <input
+                    type="text"
+                    id="namaBahan"
+                    placeholder="Contoh: Tepung Terigu"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Kategori
+                </label>
+
+                <input
+                    type="text"
+                    id="kategori"
+                    placeholder="Contoh: Bahan Utama"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Satuan
+                </label>
+
+                <input
+                    type="text"
+                    id="satuan"
+                    placeholder="Contoh: Kg / Liter / Butir"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Harga Beli
+                </label>
+
+                <input
+                    type="number"
+                    id="hargaBeli"
+                    placeholder="Contoh: 15000"
+                    min="0"
+                    step="0.01"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Stok Awal
+                </label>
+
+                <input
+                    type="number"
+                    id="stokAwal"
+                    placeholder="Contoh: 10"
+                    min="0"
+                    step="0.01"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Stok Minimum
+                </label>
+
+                <input
+                    type="number"
+                    id="stokMinimum"
+                    placeholder="Contoh: 2"
+                    min="0"
+                    step="0.01"
+                    required
+                >
+
+            </div>
+
+
+        </form>
+
+
+        <div class="button-area">
+
+            <button
+                type="submit"
+                form="formBahan"
+            >
+
+                + Tambah Bahan Baku
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         DATA BAHAN BAKU
+    ================================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Persediaan Bahan Baku
+        </h2>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Kode
+                        </th>
+
+                        <th>
+                            Nama Bahan
+                        </th>
+
+                        <th>
+                            Kategori
+                        </th>
+
+                        <th>
+                            Satuan
+                        </th>
+
+                        <th>
+                            Harga Beli
+                        </th>
+
+                        <th>
+                            Stok
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                        <th>
+                            Aksi
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tabelBahan">
+
+                    <tr>
+
+                        <td
+                            colspan="8"
+                            style="text-align:center;"
+                        >
+                            Memuat data...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         TRANSAKSI PERSEDIAAN
+    ================================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Transaksi Persediaan
+        </h2>
+
+
+        <form id="formTransaksi">
+
+
+            <div class="form-group">
+
+                <label>
+                    Bahan Baku
+                </label>
+
+                <select
+                    id="bahanTransaksi"
+                    required
+                >
+
+                    <option value="">
+                        Pilih Bahan Baku
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Jenis Transaksi
+                </label>
+
+                <select
+                    id="jenisTransaksi"
+                    required
+                >
+
+                    <option value="">
+                        Pilih Jenis Transaksi
+                    </option>
+
+                    <option value="MASUK">
+                        Bahan Masuk
+                    </option>
+
+                    <option value="KELUAR">
+                        Bahan Digunakan
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Jumlah
+                </label>
+
+                <input
+                    type="number"
+                    id="jumlahTransaksi"
+                    placeholder="Contoh: 2.5"
+                    min="0.01"
+                    step="0.01"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Tanggal
+                </label>
+
+                <input
+                    type="date"
+                    id="tanggalTransaksi"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Pemasok
+                </label>
+
+                <select
+                    id="pemasokTransaksi"
+                >
+
+                    <option value="">
+                        Pilih Pemasok
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
+                    Keterangan
+                </label>
+
+                <textarea
+                    id="keterangan"
+                    placeholder="Contoh: Pembelian bahan baku / digunakan untuk produksi"
+                ></textarea>
+
+            </div>
+
+
+        </form>
+
+
+        <div class="button-area">
+
+            <button
+                type="submit"
+                form="formTransaksi"
+            >
+
+                Simpan Transaksi
+
+            </button>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =================================================
+         RIWAYAT TRANSAKSI
+    ================================================== -->
+
+    <div class="section">
+
+        <h2 class="section-title">
+            Riwayat Transaksi
+        </h2>
+
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Tanggal
+                        </th>
+
+                        <th>
+                            Bahan
+                        </th>
+
+                        <th>
+                            Jenis
+                        </th>
+
+                        <th>
+                            Jumlah
+                        </th>
+
+                        <th>
+                            Pemasok
+                        </th>
+
+                        <th>
+                            Keterangan
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="tabelTransaksi">
+
+                    <tr>
+
+                        <td
+                            colspan="6"
+                            style="text-align:center;"
+                        >
+                            Memuat data...
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script>
+
+
+// =========================================================
+// 1. KONFIGURASI SUPABASE
+// =========================================================
+
+const SUPABASE_URL =
+    "https://freqvuyumfnxlmnnerux.supabase.co";
+
+
+const SUPABASE_KEY =
+    "sb_publishable__9J2tBHOceB6kOWP2ZPWRQ_bRvmNofZ";
+
+
+const supabaseClient =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
+
+
+
+// =========================================================
+// 2. FUNGSI PESAN
+// =========================================================
+
+function showMessage(
+    message,
+    type = "success"
+) {
+
+    const element =
+        document.getElementById(
+            "message"
+        );
+
+
+    element.textContent =
+        message;
+
+
+    element.className =
+        "message " + type;
+
+
+    setTimeout(
+        function () {
+
+            element.className =
+                "message";
+
+        },
+        4000
+    );
+
+}
+
+
+
+// =========================================================
+// 3. SAAT HALAMAN DIBUKA
+// =========================================================
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        document
+            .getElementById(
+                "tanggalTransaksi"
+            )
+            .valueAsDate =
+                new Date();
+
+
+        loadBahan();
+
+        loadPemasok();
+
+        loadTransaksi();
+
+    }
+);
+
+
+
+// =========================================================
+// 4. LOAD BAHAN BAKU
+// =========================================================
+
+async function loadBahan() {
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("bahan_baku")
+
+        .select("*")
+
+        .order(
+            "id_bahan",
+            {
+                ascending: false
+            }
+        );
+
+
+    if (error) {
+
+        console.error(error);
+
+        showMessage(
+            "Gagal mengambil data bahan baku.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const tabel =
+        document.getElementById(
+            "tabelBahan"
+        );
+
+
+    const select =
+        document.getElementById(
+            "bahanTransaksi"
+        );
+
+
+    tabel.innerHTML = "";
+
+
+    select.innerHTML = `
+
+        <option value="">
+            Pilih Bahan Baku
+        </option>
+
+    `;
+
+
+    let totalStok = 0;
+
+    let stokMenipis = 0;
+
+
+    if (data.length === 0) {
+
+        tabel.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="8"
+                    style="text-align:center;"
+                >
+
+                    Belum ada data bahan baku.
+
+                </td>
+
+            </tr>
+
+        `;
+
+    }
+
+
+    data.forEach(
+        function (bahan) {
+
+
+            totalStok +=
+                Number(
+                    bahan.stok
+                );
+
+
+            if (
+                Number(bahan.stok)
+                <=
+                Number(
+                    bahan.stok_minimum
+                )
+            ) {
+
+                stokMenipis++;
+
+            }
+
+
+            let status;
+
+
+            if (
+                Number(bahan.stok)
+                <=
+                Number(
+                    bahan.stok_minimum
+                )
+            ) {
+
+                status = `
+
+                    <span
+                        class="status-menipis"
+                    >
+
+                        Stok Menipis
+
+                    </span>
+
+                `;
+
+            } else {
+
+                status = `
+
+                    <span
+                        class="status-aman"
+                    >
+
+                        Aman
+
+                    </span>
+
+                `;
+
+            }
+
+
+            tabel.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        ${bahan.kode_bahan}
+                    </td>
+
+                    <td>
+                        ${bahan.nama_bahan}
+                    </td>
+
+                    <td>
+                        ${bahan.kategori}
+                    </td>
+
+                    <td>
+                        ${bahan.satuan}
+                    </td>
+
+                    <td>
+                        Rp
+                        ${Number(
+                            bahan.harga_beli
+                        ).toLocaleString(
+                            "id-ID"
+                        )}
+                    </td>
+
+                    <td>
+                        ${bahan.stok}
+                    </td>
+
+                    <td>
+                        ${status}
+                    </td>
+
+                    <td>
+
+                        <button
+                            type="button"
+                            class="button-danger"
+                            onclick="
+                                hapusBahan(
+                                    ${bahan.id_bahan}
+                                )
+                            "
+                        >
+
+                            Hapus
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+            `;
+
+
+            select.innerHTML += `
+
+                <option
+                    value="${bahan.id_bahan}"
+                >
+
+                    ${bahan.nama_bahan}
+                    -
+                    ${bahan.stok}
+                    ${bahan.satuan}
+
+                </option>
+
+            `;
+
+        }
+    );
+
+
+    document.getElementById(
+        "totalBahan"
+    ).textContent =
+        data.length;
+
+
+    document.getElementById(
+        "totalStok"
+    ).textContent =
+        totalStok;
+
+
+    document.getElementById(
+        "stokMenipis"
+    ).textContent =
+        stokMenipis;
+
+}
+
+
+
+// =========================================================
+// 5. LOAD PEMASOK
+// =========================================================
+
+async function loadPemasok() {
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from("pemasok")
+
+        .select("*")
+
+        .order(
+            "nama_pemasok",
+            {
+                ascending: true
+            }
+        );
+
+
+    if (error) {
+
+        console.error(error);
+
+        showMessage(
+            "Gagal mengambil data pemasok.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const select =
+        document.getElementById(
+            "pemasokTransaksi"
+        );
+
+
+    select.innerHTML = `
+
+        <option value="">
+            Pilih Pemasok
+        </option>
+
+    `;
+
+
+    data.forEach(
+        function (pemasok) {
+
+            select.innerHTML += `
+
+                <option
+                    value="${pemasok.id_pemasok}"
+                >
+
+                    ${pemasok.nama_pemasok}
+
+                </option>
+
+            `;
+
+        }
+    );
+
+
+    document.getElementById(
+        "totalPemasok"
+    ).textContent =
+        data.length;
+
+}
+
+
+
+// =========================================================
+// 6. TAMBAH BAHAN BAKU
+// =========================================================
+
+document.getElementById(
+    "formBahan"
+).addEventListener(
+    "submit",
+    async function (event) {
+
+
+        event.preventDefault();
+
+
+        const bahan = {
+
+            kode_bahan:
+                document.getElementById(
+                    "kodeBahan"
+                ).value.trim(),
+
+            nama_bahan:
+                document.getElementById(
+                    "namaBahan"
+                ).value.trim(),
+
+            kategori:
+                document.getElementById(
+                    "kategori"
+                ).value.trim(),
+
+            satuan:
+                document.getElementById(
+                    "satuan"
+                ).value.trim(),
+
+            harga_beli:
+                Number(
+                    document.getElementById(
+                        "hargaBeli"
+                    ).value
+                ),
+
+            stok:
+                Number(
+                    document.getElementById(
+                        "stokAwal"
+                    ).value
+                ),
+
+            stok_minimum:
+                Number(
+                    document.getElementById(
+                        "stokMinimum"
+                    ).value
+                )
+
+        };
+
+
+        const {
+            error
+        } = await supabaseClient
+
+            .from("bahan_baku")
+
+            .insert([bahan]);
+
+
+        if (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Gagal menambahkan bahan baku: "
+                + error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        showMessage(
+            "Bahan baku berhasil ditambahkan!"
+        );
+
+
+        document.getElementById(
+            "formBahan"
+        ).reset();
+
+
+        loadBahan();
+
+    }
+);
+
+
+
+// =========================================================
+// 7. HAPUS BAHAN
+// =========================================================
+
+async function hapusBahan(id) {
+
+
+    const yakin =
+        confirm(
+            "Yakin ingin menghapus bahan baku ini?"
+        );
+
+
+    if (!yakin) {
+
+        return;
+
+    }
+
+
+    const {
+        error
+    } = await supabaseClient
+
+        .from("bahan_baku")
+
+        .delete()
+
+        .eq(
+            "id_bahan",
+            id
+        );
+
+
+    if (error) {
+
+        console.error(error);
+
+        showMessage(
+            "Bahan baku tidak dapat dihapus: "
+            + error.message,
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    showMessage(
+        "Bahan baku berhasil dihapus!"
+    );
+
+
+    loadBahan();
+
+}
+
+
+
+// =========================================================
+// 8. TAMBAH TRANSAKSI
+// =========================================================
+
+document.getElementById(
+    "formTransaksi"
+).addEventListener(
+    "submit",
+    async function (event) {
+
+
+        event.preventDefault();
+
+
+        const idBahan =
+            Number(
+                document.getElementById(
+                    "bahanTransaksi"
+                ).value
+            );
+
+
+        const jenis =
+            document.getElementById(
+                "jenisTransaksi"
+            ).value;
+
+
+        const jumlah =
+            Number(
+                document.getElementById(
+                    "jumlahTransaksi"
+                ).value
+            );
+
+
+        // =============================================
+        // CEK STOK JIKA BAHAN DIGUNAKAN
+        // =============================================
+
+        if (
+            jenis === "KELUAR"
+        ) {
+
+
+            const {
+                data: bahan,
+                error: errorBahan
+            } = await supabaseClient
+
+                .from("bahan_baku")
+
+                .select("stok")
+
+                .eq(
+                    "id_bahan",
+                    idBahan
+                )
+
+                .single();
+
+
+            if (errorBahan) {
+
+                console.error(
+                    errorBahan
+                );
+
+                showMessage(
+                    "Gagal mengecek stok.",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            if (
+                Number(bahan.stok)
+                < jumlah
+            ) {
+
+                showMessage(
+                    "Stok tidak mencukupi. "
+                    +
+                    "Stok tersedia: "
+                    +
+                    bahan.stok,
+                    "error"
+                );
+
+                return;
+
+            }
+
+        }
+
+
+        // =============================================
+        // DATA TRANSAKSI
+        // =============================================
+
+        const transaksi = {
+
+            id_bahan:
+                idBahan,
+
+            id_pemasok:
+                document.getElementById(
+                    "pemasokTransaksi"
+                ).value || null,
+
+            tanggal:
+                document.getElementById(
+                    "tanggalTransaksi"
+                ).value,
+
+            jenis_transaksi:
+                jenis,
+
+            jumlah:
+                jumlah,
+
+            keterangan:
+                document.getElementById(
+                    "keterangan"
+                ).value.trim()
+
+        };
+
+
+        const {
+            error
+        } = await supabaseClient
+
+            .from(
+                "transaksi_persediaan"
+            )
+
+            .insert([
+                transaksi
+            ]);
+
+
+        if (error) {
+
+            console.error(error);
+
+            showMessage(
+                "Gagal menyimpan transaksi: "
+                +
+                error.message,
+                "error"
+            );
+
+            return;
+
+        }
+
+
+        showMessage(
+            "Transaksi berhasil disimpan!"
+        );
+
+
+        document.getElementById(
+            "formTransaksi"
+        ).reset();
+
+
+        document.getElementById(
+            "tanggalTransaksi"
+        ).valueAsDate =
+            new Date();
+
+
+        loadBahan();
+
+        loadTransaksi();
+
+    }
+);
+
+
+
+// =========================================================
+// 9. LOAD RIWAYAT TRANSAKSI
+// =========================================================
+
+async function loadTransaksi() {
+
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+
+        .from(
+            "transaksi_persediaan"
+        )
+
+        .select(`
+
+            id_transaksi,
+            tanggal,
+            jenis_transaksi,
+            jumlah,
+            keterangan,
+
+            bahan_baku (
+                nama_bahan,
+                satuan
+            ),
+
+            pemasok (
+                nama_pemasok
+            )
+
+        `)
+
+        .order(
+            "id_transaksi",
+            {
+                ascending: false
+            }
+        );
+
+
+    if (error) {
+
+        console.error(error);
+
+        showMessage(
+            "Gagal mengambil riwayat transaksi.",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const tabel =
+        document.getElementById(
+            "tabelTransaksi"
+        );
+
+
+    tabel.innerHTML = "";
+
+
+    if (data.length === 0) {
+
+        tabel.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="6"
+                    style="text-align:center;"
+                >
+
+                    Belum ada transaksi.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    data.forEach(
+        function (transaksi) {
+
+
+            let jenisHTML;
+
+
+            if (
+                transaksi.jenis_transaksi
+                === "MASUK"
+            ) {
+
+                jenisHTML = `
+
+                    <span
+                        class="badge-masuk"
+                    >
+
+                        Bahan Masuk
+
+                    </span>
+
+                `;
+
+            } else {
+
+                jenisHTML = `
+
+                    <span
+                        class="badge-keluar"
+                    >
+
+                        Digunakan Produksi
+
+                    </span>
+
+                `;
+
+            }
+
+
+            tabel.innerHTML += `
+
+                <tr>
+
+                    <td>
+                        ${transaksi.tanggal}
+                    </td>
+
+                    <td>
+                        ${transaksi.bahan_baku?.nama_bahan || "-"}
+                    </td>
+
+                    <td>
+                        ${jenisHTML}
+                    </td>
+
+                    <td>
+
+                        ${transaksi.jumlah}
+
+                        ${transaksi.bahan_baku?.satuan || ""}
+
+                    </td>
+
+                    <td>
+                        ${
+                            transaksi.pemasok?.nama_pemasok
+                            || "-"
+                        }
+                    </td>
+
+                    <td>
+                        ${
+                            transaksi.keterangan
+                            || "-"
+                        }
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+    );
+
+}
+
+</script>
+
+
+</body>
+
+</html>
